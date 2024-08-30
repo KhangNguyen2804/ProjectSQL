@@ -1,0 +1,83 @@
+Data Analyst porject
+		/* Q1: Who is the senior most employee based on job title? */
+	/*1st Way*/
+
+Select Title, Last_name, First_name
+from employee
+where levels = (select max (levels) from employees);
+
+	/* 2nd Way */
+
+Select Title, Last_name, First_name
+from employee
+order by levels DESC
+LIMIT 1;
+
+	/*3RD Way*/
+
+With RankedEmployees as (
+	Select Title, Last_name, First_name
+		ROW number() over (order by levels DESC) as RowNumber
+	From employee
+)
+	Select Title, Last_name, First_name,
+		ROW_Number() over ( order by levels DESC) as RowNumber
+	From RankedEmployees
+)
+Select Select Title, Last_name, First_name
+from RankedEmployees 
+where RowNumber=1;
+		/*q2 which countries have the most invoices?*/
+	/*1ST WAY*/
+select count(*) As A,Billing_Country
+from Invoice
+group by Billing_Country
+order by A DESC;
+
+/* 2ND WAY*/
+Select count(InvoiceID) As A,Billing_Country 
+from Invoice
+group by Billing_Country
+order by A DESC;
+/*3RD WAY*/
+Select sum(1) as A,Billing_Country 
+from Invoice
+group by Billing_Country 
+order by A DESC
+/*4TH WAY*/
+Select Billing_Country,A
+From(
+	Select Billing Country count(*) as A
+    from Invoice
+    Group By Billing_Country
+) As Subquery
+Order BY A DESC;
+		/*Q3:what are the top 3 values of total invoice?*/
+Select * 
+from Invoice
+group by total DESC
+limit 3;
+
+		/* Q4: Which city has the best customers? We would like to throw a promotional Music Festival in the city we made the most money. 
+Write a query that returns one city that has the highest sum of invoice totals. 
+Return both the city name & sum of all invoice totals */
+	/*1ST WAY*/
+Select i1.Billing_Country, Sum(i1.total) As InvoiceTotal
+from Invoice i1
+join(
+	Select Billing_city, sum(total) as InvoiceTotal
+    group by Billing_City
+) i2 on i1.Billing_City = i2.Billing_city
+group by i1.Billing_City
+order by InvoiceTotal DESC
+limit 1;
+	/*2ND WAY*/
+Select Billing_City, sum(total) As InvoiceTotal
+from Invoice
+group by Billing_City
+having Sum(total) =(
+	Select Max(SUM(total))
+    from invoice
+    group by Billing_City
+);
+
